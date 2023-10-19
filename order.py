@@ -1,65 +1,32 @@
-from ib_insync import *
-import time
-import pandas as pd
-from dataclasses import asdict
-import tabloo
+from alpaca.trading.requests import OrderRequest
+from alpaca.trading.client import TradingClient
+from alpaca.trading.enums import OrderSide, TimeInForce, OrderType
+from keys import *
 
-ib = IB()
-ib.connect('127.0.0.1', 7497, 3)
 
-stock = Stock('AAPL', 'SMART','USD')
+client = TradingClient(API_KEY, SECRET_KEY)
 
-order = LimitOrder('BUY', 5, 75.13)
+def buy_order(symbol, qty):
 
-# trade = ib.placeOrder(stock, order)
-# ids = order.orderId
-portfolio = ib.portfolio()
-# print(portfolio)
-positions = []
+    buy_order = OrderRequest(
+        symbol=symbol,
+        qty=qty,
+        side = OrderSide.BUY,
+        time_in_force=TimeInForce.GTC,
+        type= OrderType.MARKET
+        )
 
-counter = 0
+    return client.submit_order(buy_order)
 
-for i in portfolio[0]:
-    # print (type(i))
-    positions.append(i)
-    
-# print(positions[0])
+def sell_order(symbol, qty):
 
-# for i in positions[0]:
-    # print(i)
-    
-value = util.df(portfolio)
-# print(type(positions[0]))
-# print(value)
+    sell_order = OrderRequest(
+        symbol=symbol,
+        qty=qty,
+        side=OrderSide.SELL,
+        time_in_force=TimeInForce.GTC,
+        type= OrderType.MARKET
+    )
 
-# data = pd.DataFrame(positions, columns=['one', 'two', 'three', 'four', 'five', 'six', 'seven'])
-data = asdict(positions[0])
+    return client.submit_order(sell_order)
 
-# new_data = util.df(data)
-new_frame = pd.DataFrame([data])
-# print(new_frame)
-
-frames = [new_frame, value]
-result = pd.concat(frames, axis=1)
-result.drop(['contract'],axis=1, inplace=True)
-# print(result)
-tabloo.show(result)
-#     for y in range(1):
-        
-    
-    # positions.append(i)
-
-# data = util.df(positions)
-# print(data)
-
-# new_data = util.df(positions[0])
-# for i in positions[0]:
-#     print(i[0])
-# print(positions)
-# news = ib.reqNewsBulletins(True)
-
-# time.sleep(5)
-# print(news)
-# dataframe = pd.DataFrame(portfolio[1], columns=['one', 'two', 'three', 'four', 'five', 'six', 'seven'])
-
-# print(type(portfolio[0]))

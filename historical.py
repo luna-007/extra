@@ -1,18 +1,31 @@
-import requests
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.historical.stock import StockHistoricalDataClient
+from alpaca.data.timeframe import TimeFrame
 from keys import *
-import json
+from variables import *
+import datetime as dt
+start = dt.datetime(2022, 1, 1)
+end = dt.datetime(2023, 9, 18)
 
-url = "https://api-testnet.bybit.com/v5/order/realtime"
 
-payload={}
-headers = {
-  'X-BAPI-API-KEY': API_KEY,
-  'X-BAPI-TIMESTAMP': '1693939221624',
-  'X-BAPI-RECV-WINDOW': '20000',
-  'X-BAPI-SIGN': '39ef95f35a13d44dbc204caddac1c41058b452f87ec5fd905a16dd8cfd1faaef'
-}
+def cleanData(data):
+    data.reset_index(inplace=True)
+    data.drop(['symbol', 'vwap', 'trade_count'],axis=1, inplace=True)
+    return data
 
-response = requests.request(url, headers=headers, data=payload)
-# data = json.loads(response.text)
 
-print(response.text)
+client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
+
+hist_req = StockBarsRequest(
+    symbol_or_symbols=symbols,
+    timeframe=TimeFrame.Day, 
+    start= start, 
+    end= end
+    )
+
+data = client.get_stock_bars(hist_req).df
+data = cleanData(data)
+
+data['sma'] = data['close'].rolling(120).mean().fillna(0, inplace=False)
+
+DATA = data
